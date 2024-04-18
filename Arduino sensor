@@ -1,0 +1,54 @@
+#include <DHT.h>
+#include <LiquidCrystal.h>
+
+#define DHTPIN 2     // Digital pin connected to the DHT sensor
+#define DHTTYPE DHT11   // DHT 11 sensor type
+DHT dht(DHTPIN, DHTTYPE);
+
+LiquidCrystal lcd(12, 11, 5, 4, 3, 6); // Initialize the LCD display
+
+// Constants for scaling and offset
+const float a = 20.0;  // Multiplication factor for humidity
+const float b = 20.0;  // Multiplication factor for temperature
+const float c = 30.0;  // Offset for both temperature and humidity
+const float threshold = 70.0; // Threshold for fire prediction confidence
+const float thresholds= 100.0;
+void setup() {
+  Serial.begin(9600);
+  dht.begin();
+  lcd.begin(16, 2);  // Initialize the LCD display with 16 columns and 2 rows
+  lcd.clear();      // Clear the display
+}
+
+void loop() {
+  float humidity = dht.readHumidity();  // Read humidity value from the sensor
+  float temperature = dht.readTemperature();  // Read temperature value from the sensor (in Celsius)
+
+  // Apply scaling and offset to temperature and humidity
+  float tempOutput = (temperature * b) + c;
+  float humidityOutput = (humidity * a) + c;
+
+  // Check if fire is predicted based on some criteria (e.g., temperature/humidity thresholds)
+  bool firePredicted = (temperature > threshold || humidity > thresholds);
+
+  lcd.setCursor(0, 0);
+  lcd.print("Temp Output: ");
+  lcd.print(tempOutput);
+  lcd.print(" C");
+
+  lcd.setCursor(0, 1);
+  lcd.print("Humidity Output: ");
+  lcd.print(humidityOutput);
+  lcd.print(" %");
+
+  // Display prediction result
+  if (firePredicted) {
+    lcd.setCursor(0, 2);
+    lcd.print("Fire Predicted");
+  } else {
+    lcd.setCursor(0, 2);
+    lcd.print("No Fire");
+  }
+
+  delay(2000);  // Delay between sensor readings
+}
